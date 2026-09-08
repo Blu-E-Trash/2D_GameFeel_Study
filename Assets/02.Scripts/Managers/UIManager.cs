@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI; // Text 컴포넌트 사용을 위해 추가
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -15,9 +15,10 @@ public class UIManager : MonoBehaviour
     public Toggle toggleReaction;
     public Toggle togglePlayerReaction;
     public Button buttonAttack;
+    public Button ExitButton;
 
     [Header("System Message")]
-    public Text systemMessageText; // 상태를 띄울 텍스트 UI
+    public Text systemMessageText;
     public GameObject systemMessagePanel;
 
     public event Action OnAttackTriggered;
@@ -35,10 +36,12 @@ public class UIManager : MonoBehaviour
         else Destroy(gameObject);
 
         buttonAttack.onClick.AddListener(() => OnAttackTriggered?.Invoke());
+
+        ExitButton.onClick.AddListener(() => Application.Quit());
+
         if (systemMessagePanel != null) systemMessagePanel.gameObject.SetActive(false);
     }
 
-    // 시스템 메시지 출력 함수
     public void ShowSystemMessage(string message, Color color)
     {
         if (systemMessageText == null) return;

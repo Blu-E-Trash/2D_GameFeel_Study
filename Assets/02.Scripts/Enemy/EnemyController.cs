@@ -31,17 +31,16 @@ public class EnemyController : MonoBehaviour
         isAttacking = true;
         attackIndicator.SetActive(true);
 
-        // 1. 공격 예비 동작 대기
+        // 공격 예비 동작 대기
         yield return new WaitForSeconds(telegraphTime);
         attackIndicator.SetActive(false);
 
         // 공격 찌르기 모션
         Vector3 originalPos = visuals.localPosition;
-        // 플레이어 방향(좌측, x축 -방향)으로 1만큼 순간 이동
-        visuals.localPosition = new Vector3(originalPos.x - 1f, originalPos.y, originalPos.z);
-        // ----------------------------------
+        // 플레이어 방향(좌측, x축 -방향)으로 3만큼 순간 이동
+        visuals.localPosition = new Vector3(originalPos.x - 3f, originalPos.y, originalPos.z);
 
-        // 2. 공격 판정
+        // 공격 판정
         PlayerController player = FindAnyObjectByType<PlayerController>();
         if (player != null && player.IsParrying)
         {
@@ -73,7 +72,7 @@ public class EnemyController : MonoBehaviour
 
     private IEnumerator ApplyReactionRoutine()
     {
-        // 에셋 없이 Z축을 기울여 뒤로 밀리는 자세 붕괴(스턴) 구현
+        // 에셋 없이 Z축을 기울여 뒤로 밀리는 자세 붕괴 구현
         float duration = 0.15f;
         float elapsed = 0f;
         Quaternion originalRot = visuals.localRotation;

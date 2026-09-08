@@ -27,7 +27,7 @@ public class FeedbackManager : MonoBehaviour
 
         // 2. 글로벌 피드백 (시간/화면)
         if (UIManager.Instance.UseHitStop)
-            StartCoroutine(HitStopRoutine(0.15f)); // 0.15초간 정지
+            StartCoroutine(HitStopRoutine(0.5f)); // 0.5초간 정지
 
         if (UIManager.Instance.UseCamShake)
             StartCoroutine(CameraShakeRoutine(0.15f, 0.3f)); // 0.15초간 0.3의 강도로 진동

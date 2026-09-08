@@ -1,57 +1,73 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Feedback Settings")]
     public Transform visuals;
-    public ParticleSystem vfxParry;
-    public AudioSource audioSource;
-    public float parryWindow = 0.3f; // 패링 지속 시간 (테스트 시 조절 가능)
 
+    public GameObject[] parryVfxPrefabs;
+    public Transform vfxSpawnPoint;
+
+    public AudioSource audioSource;
+    public AudioClip soundParrySuccess;
+    public AudioClip soundParryFail;
+
+    public float parryWindow = 0.3f;
     public bool IsParrying { get; private set; }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !IsParrying)
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame && !IsParrying)
         {
             StartCoroutine(ParryActionRoutine());
-            Debug.Log("패링 시작");
         }
     }
 
     private IEnumerator ParryActionRoutine()
     {
         IsParrying = true;
-        // 필요시 방어 자세 애니메이션 재생
         yield return new WaitForSeconds(parryWindow);
         IsParrying = false;
     }
 
     public void PlayVisualFeedback()
     {
-        if (vfxParry != null) vfxParry.Play();
+        // 등록된 프리팹 중 하나를 무작위로 선택하여 생성
+        if (parryVfxPrefabs != null && parryVfxPrefabs.Length > 0)
+        {
+            int randomIndex = Random.Range(0, parryVfxPrefabs.Length);
+            GameObject selectedPrefab = parryVfxPrefabs[randomIndex];
+
+            if (selectedPrefab != null)
+            {
+                // 생성 위치 결정 (vfxSpawnPoint가 있다면 그곳, 없다면 기본 visuals 위치)
+                Vector3 spawnPos = (vfxSpawnPoint != null) ? vfxSpawnPoint.position : visuals.position;
+
+                // 프리팹 인스턴스화
+                GameObject spawnedVfx = Instantiate(selectedPrefab, spawnPos, Quaternion.identity);
+            }
+        }
+
         StartCoroutine(FlashWhiteRoutine());
     }
 
     public void PlayAudioFeedback()
     {
-        if (audioSource != null) audioSource.Play();
-    }
-
-    private IEnumerator FlashWhiteRoutine()
-    {
-        Renderer rend = visuals.GetComponent<Renderer>();
-        if (rend == null) yield break;
-
-        Color originalColor = rend.material.color;
-        rend.material.color = Color.white; // 순간적인 화이트 플래시 타격감
-
-        yield return new WaitForSeconds(0.1f);
-        rend.material.color = originalColor;
+        if (audioSource != null && soundParrySuccess != null)
+        {
+            audioSource.PlayOneShot(soundParrySuccess);
+        }
     }
 
     public void PlayFailFeedback()
     {
+        if (UIManager.Instance.UseAudio && audioSource != null && soundParryFail != null)
+        {
+            audioSource.PlayOneShot(soundParryFail);
+        }
+
         StartCoroutine(KnockbackRoutine());
         StartCoroutine(FlashRedRoutine());
     }
@@ -59,12 +75,11 @@ public class PlayerController : MonoBehaviour
     private IEnumerator KnockbackRoutine()
     {
         Vector3 originalPos = visuals.localPosition;
-        Vector3 targetPos = originalPos + new Vector3(-0.5f, 0, 0); // 좌측으로 0.5만큼 밀림
+        Vector3 targetPos = originalPos + new Vector3(-0.5f, 0, 0);
 
         float elapsed = 0f;
         float duration = 0.1f;
 
-        // 뒤로 밀리기
         while (elapsed < duration)
         {
             visuals.localPosition = Vector3.Lerp(originalPos, targetPos, elapsed / duration);
@@ -72,9 +87,8 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(0.1f); // 잠시 경직
+        yield return new WaitForSeconds(0.1f);
 
-        // 원래 위치로 복귀
         elapsed = 0f;
         while (elapsed < duration)
         {
@@ -85,13 +99,25 @@ public class PlayerController : MonoBehaviour
         visuals.localPosition = originalPos;
     }
 
+    private IEnumerator FlashWhiteRoutine()
+    {
+        Renderer rend = visuals.GetComponent<Renderer>();
+        if (rend == null) yield break;
+
+        Color originalColor = rend.material.color;
+        rend.material.color = Color.white;
+
+        yield return new WaitForSeconds(0.1f);
+        rend.material.color = originalColor;
+    }
+
     private IEnumerator FlashRedRoutine()
     {
         Renderer rend = visuals.GetComponent<Renderer>();
         if (rend == null) yield break;
 
         Color originalColor = rend.material.color;
-        rend.material.color = Color.red; // 피격 시 붉은색
+        rend.material.color = Color.red;
 
         yield return new WaitForSeconds(0.1f);
         rend.material.color = originalColor;

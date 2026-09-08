@@ -19,7 +19,7 @@ public class FeedbackManager : MonoBehaviour
 
     public void TriggerParryFeedback()
     {
-        PlayerController player = FindObjectOfType<PlayerController>();
+        PlayerController player = FindAnyObjectByType<PlayerController>();
 
         // 1. 로컬 피드백 (시각/청각)
         if (UIManager.Instance.UseVisual) player.PlayVisualFeedback();

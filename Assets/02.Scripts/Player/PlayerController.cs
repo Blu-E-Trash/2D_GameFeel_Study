@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && !IsParrying)
         {
             StartCoroutine(ParryActionRoutine());
+            Debug.Log("패링 시작");
         }
     }
 
@@ -44,6 +45,53 @@ public class PlayerController : MonoBehaviour
 
         Color originalColor = rend.material.color;
         rend.material.color = Color.white; // 순간적인 화이트 플래시 타격감
+
+        yield return new WaitForSeconds(0.1f);
+        rend.material.color = originalColor;
+    }
+
+    public void PlayFailFeedback()
+    {
+        StartCoroutine(KnockbackRoutine());
+        StartCoroutine(FlashRedRoutine());
+    }
+
+    private IEnumerator KnockbackRoutine()
+    {
+        Vector3 originalPos = visuals.localPosition;
+        Vector3 targetPos = originalPos + new Vector3(-0.5f, 0, 0); // 좌측으로 0.5만큼 밀림
+
+        float elapsed = 0f;
+        float duration = 0.1f;
+
+        // 뒤로 밀리기
+        while (elapsed < duration)
+        {
+            visuals.localPosition = Vector3.Lerp(originalPos, targetPos, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.1f); // 잠시 경직
+
+        // 원래 위치로 복귀
+        elapsed = 0f;
+        while (elapsed < duration)
+        {
+            visuals.localPosition = Vector3.Lerp(targetPos, originalPos, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        visuals.localPosition = originalPos;
+    }
+
+    private IEnumerator FlashRedRoutine()
+    {
+        Renderer rend = visuals.GetComponent<Renderer>();
+        if (rend == null) yield break;
+
+        Color originalColor = rend.material.color;
+        rend.material.color = Color.red; // 피격 시 붉은색
 
         yield return new WaitForSeconds(0.1f);
         rend.material.color = originalColor;

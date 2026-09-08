@@ -35,23 +35,39 @@ public class EnemyController : MonoBehaviour
         yield return new WaitForSeconds(telegraphTime);
         attackIndicator.SetActive(false);
 
-        // 2. 공격 판정 (단순화를 위해 Player를 직접 찾아 상태 확인)
-        PlayerController player = FindObjectOfType<PlayerController>();
+        // 공격 찌르기 모션
+        Vector3 originalPos = visuals.localPosition;
+        // 플레이어 방향(좌측, x축 -방향)으로 1만큼 순간 이동
+        visuals.localPosition = new Vector3(originalPos.x - 1f, originalPos.y, originalPos.z);
+        // ----------------------------------
+
+        // 2. 공격 판정
+        PlayerController player = FindAnyObjectByType<PlayerController>();
         if (player != null && player.IsParrying)
         {
             // 패링 성공
+            UIManager.Instance.ShowSystemMessage("Parrying Success!", Color.green);
             FeedbackManager.Instance.TriggerParryFeedback();
 
-            // UI에 적 반응 옵션이 켜져 있다면 자세 붕괴 코루틴 실행
             if (UIManager.Instance.UseReaction)
                 StartCoroutine(ApplyReactionRoutine());
         }
         else
         {
-            Debug.Log("패링 실패! 일반 피격 처리");
+            // 패링 실패
+            UIManager.Instance.ShowSystemMessage("Parrying Fail...", Color.red);
+
+            // 토글이 켜져 있을 때만 플레이어 밀림 및 색상 변경 연출 실행
+            if (player != null && UIManager.Instance.UsePlayerReaction)
+            {
+                player.PlayFailFeedback();
+            }
         }
 
-        yield return new WaitForSeconds(0.5f); // 공격 후딜레이
+        yield return new WaitForSeconds(0.2f); // 공격 자세 유지 시간
+        visuals.localPosition = originalPos; // 원래 자리로 복귀
+
+        yield return new WaitForSeconds(0.3f); // 공격 후딜레이
         isAttacking = false;
     }
 

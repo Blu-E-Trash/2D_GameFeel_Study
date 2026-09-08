@@ -6,12 +6,12 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Feedback Settings")]
     public Transform visuals;
-
     public GameObject[] parryVfxPrefabs;
     public Transform vfxSpawnPoint;
 
     public AudioSource audioSource;
-    public AudioClip soundParrySuccess;
+
+    public AudioClip[] soundParrySuccessList;
     public AudioClip soundParryFail;
 
     public float parryWindow = 0.3f;
@@ -34,7 +34,6 @@ public class PlayerController : MonoBehaviour
 
     public void PlayVisualFeedback()
     {
-        // 등록된 프리팹 중 하나를 무작위로 선택하여 생성
         if (parryVfxPrefabs != null && parryVfxPrefabs.Length > 0)
         {
             int randomIndex = Random.Range(0, parryVfxPrefabs.Length);
@@ -42,11 +41,9 @@ public class PlayerController : MonoBehaviour
 
             if (selectedPrefab != null)
             {
-                // 생성 위치 결정 (vfxSpawnPoint가 있다면 그곳, 없다면 기본 visuals 위치)
                 Vector3 spawnPos = (vfxSpawnPoint != null) ? vfxSpawnPoint.position : visuals.position;
-
-                // 프리팹 인스턴스화
                 GameObject spawnedVfx = Instantiate(selectedPrefab, spawnPos, Quaternion.identity);
+                Destroy(spawnedVfx, 2f);
             }
         }
 
@@ -55,9 +52,15 @@ public class PlayerController : MonoBehaviour
 
     public void PlayAudioFeedback()
     {
-        if (audioSource != null && soundParrySuccess != null)
+        if (audioSource != null && soundParrySuccessList != null && soundParrySuccessList.Length > 0)
         {
-            audioSource.PlayOneShot(soundParrySuccess);
+            int randomIndex = Random.Range(0, soundParrySuccessList.Length);
+            AudioClip selectedSound = soundParrySuccessList[randomIndex];
+
+            if (selectedSound != null)
+            {
+                audioSource.PlayOneShot(selectedSound);
+            }
         }
     }
 

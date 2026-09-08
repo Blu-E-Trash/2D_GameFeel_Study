@@ -2094,8 +2094,10 @@ MonoBehaviour:
   - {fileID: 1429954232896169633, guid: 83036083a4ebcd34f98131bd3cf6f4d2, type: 3}
   vfxSpawnPoint: {fileID: 798043847}
   audioSource: {fileID: 1199268735}
-  soundParrySuccess: {fileID: 0}
-  soundParryFail: {fileID: 0}
+  soundParrySuccessList:
+  - {fileID: 8300000, guid: 395c7d180c4ba024b837677b5c00adcd, type: 3}
+  - {fileID: 8300000, guid: c3bd17f59f977c94ea8c0bd8ca467c23, type: 3}
+  soundParryFail: {fileID: 8300000, guid: 8395ed121b99cbe41baabfca8fadf327, type: 3}
   parryWindow: 0.3
 --- !u!82 &1199268735
 AudioSource:

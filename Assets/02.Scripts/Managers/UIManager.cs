@@ -83,9 +83,10 @@ public class UIManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        buttonAttack.onClick.AddListener(() => OnAttackTriggered?.Invoke());
+        // 공격 버튼은 제거됨 (A 키 / Auto Attack으로 공격). 버튼을 다시 연결하면 그대로 동작한다.
+        if (buttonAttack != null) buttonAttack.onClick.AddListener(() => OnAttackTriggered?.Invoke());
 
-        ExitButton.onClick.AddListener(() => Application.Quit());
+        if (ExitButton != null) ExitButton.onClick.AddListener(() => Application.Quit());
 
         if (systemMessagePanel != null) systemMessagePanel.gameObject.SetActive(false);
     }

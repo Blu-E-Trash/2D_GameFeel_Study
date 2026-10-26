@@ -7,6 +7,9 @@ public class EnemyController : MonoBehaviour
     public GameObject attackIndicator; // 느낌표 등 예비 동작 UI
     public float telegraphTime = 0.8f; // 공격 전조 시간
 
+    [Tooltip("Random Telegraph가 켜져 있을 때 전조 시간 = telegraphTime × (1 ± 이 비율)")]
+    [Range(0f, 0.5f)] public float telegraphRandomRange = 0.25f;
+
     private bool isAttacking = false;
 
     private void Start()
@@ -31,8 +34,11 @@ public class EnemyController : MonoBehaviour
         isAttacking = true;
         attackIndicator.SetActive(true);
 
-        // 공격 예비 동작 대기
-        yield return new WaitForSeconds(telegraphTime);
+        // 공격 예비 동작 대기 (Random Telegraph: 리듬을 외워서 맞추지 못하도록 전조 길이를 흔든다)
+        float telegraph = telegraphTime;
+        if (UIManager.Instance.UseRandomTelegraph)
+            telegraph = telegraphTime * Random.Range(1f - telegraphRandomRange, 1f + telegraphRandomRange);
+        yield return new WaitForSeconds(telegraph);
         attackIndicator.SetActive(false);
 
         // 공격 찌르기 모션
@@ -42,7 +48,10 @@ public class EnemyController : MonoBehaviour
 
         // 공격 판정
         PlayerController player = FindAnyObjectByType<PlayerController>();
-        if (player != null && player.IsParrying)
+        bool parrySuccess = player != null && player.IsParrying;
+        UIManager.Instance.RecordParryResult(parrySuccess);
+
+        if (parrySuccess)
         {
             // 패링 성공
             UIManager.Instance.ShowSystemMessage("Parrying Success!", Color.green);
@@ -56,10 +65,11 @@ public class EnemyController : MonoBehaviour
             // 패링 실패
             UIManager.Instance.ShowSystemMessage("Parrying Fail...", Color.red);
 
-            // 토글이 켜져 있을 때만 플레이어 밀림 및 색상 변경 연출 실행
-            if (player != null && UIManager.Instance.UsePlayerReaction)
+            if (player != null)
             {
-                player.PlayFailFeedback();
+                // 실패 사운드는 Sound 토글로, 밀림·색상 변경은 Player Reaction 토글로 각각 제어
+                if (UIManager.Instance.UseAudio) player.PlayFailSound();
+                if (UIManager.Instance.UsePlayerReaction) player.PlayFailFeedback();
             }
         }
 

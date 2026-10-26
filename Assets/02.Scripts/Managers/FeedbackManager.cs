@@ -5,6 +5,9 @@ public class FeedbackManager : MonoBehaviour
 {
     public static FeedbackManager Instance { get; private set; }
 
+    [Tooltip("패링 성공 시 히트스톱 길이(초). 이전 버전은 0.5초 고정이었다. UI 슬라이더로 조절된다.")]
+    public float hitStopDuration = 0.1f;
+
     private Camera mainCamera;
     private Vector3 originalCameraPos;
 
@@ -22,12 +25,15 @@ public class FeedbackManager : MonoBehaviour
         PlayerController player = FindAnyObjectByType<PlayerController>();
 
         // 1. 로컬 피드백 (시각/청각)
-        if (UIManager.Instance.UseVisual) player.PlayVisualFeedback();
-        if (UIManager.Instance.UseAudio) player.PlayAudioFeedback();
+        if (player != null)
+        {
+            if (UIManager.Instance.UseVisual) player.PlayVisualFeedback();
+            if (UIManager.Instance.UseAudio) player.PlayAudioFeedback();
+        }
 
         // 2. 글로벌 피드백 (시간/화면)
-        if (UIManager.Instance.UseHitStop)
-            StartCoroutine(HitStopRoutine(0.5f)); // 0.5초간 정지
+        if (UIManager.Instance.UseHitStop && hitStopDuration > 0f)
+            StartCoroutine(HitStopRoutine(hitStopDuration));
 
         if (UIManager.Instance.UseCamShake)
             StartCoroutine(CameraShakeRoutine(0.15f, 0.3f)); // 0.15초간 0.3의 강도로 진동

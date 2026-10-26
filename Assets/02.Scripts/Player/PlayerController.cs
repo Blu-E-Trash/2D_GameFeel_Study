@@ -15,13 +15,25 @@ public class PlayerController : MonoBehaviour
     public AudioClip soundParryFail;
 
     public float parryWindow = 0.3f;
+
+    [Tooltip("패링 유효 시간이 끝난 뒤 다시 패링할 수 없는 시간. 0이면 연타로 판정 시간을 이어 붙일 수 있습니다.")]
+    public float parryRecovery = 0.35f;
+
     public bool IsParrying { get; private set; }
+    public bool IsRecovering { get; private set; }
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame && !IsParrying)
+        if (Keyboard.current == null || !Keyboard.current.spaceKey.wasPressedThisFrame) return;
+
+        if (!IsParrying && !IsRecovering)
         {
             StartCoroutine(ParryActionRoutine());
+            if (UIManager.Instance != null) UIManager.Instance.RecordParryPressed();
+        }
+        else if (IsRecovering)
+        {
+            if (UIManager.Instance != null) UIManager.Instance.RecordParryRejected();
         }
     }
 
@@ -30,6 +42,15 @@ public class PlayerController : MonoBehaviour
         IsParrying = true;
         yield return new WaitForSeconds(parryWindow);
         IsParrying = false;
+
+        // 연타 방지: 판정이 끝난 직후 바로 다시 패링하지 못하게 해서
+        // 스페이스를 계속 누르는 것만으로 성공하는 상황을 막는다.
+        if (parryRecovery > 0f)
+        {
+            IsRecovering = true;
+            yield return new WaitForSeconds(parryRecovery);
+            IsRecovering = false;
+        }
     }
 
     public void PlayVisualFeedback()
@@ -64,13 +85,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void PlayFailFeedback()
+    // 실패 사운드는 Sound 토글로만 제어한다. (Player Reaction 토글과 분리)
+    public void PlayFailSound()
     {
-        if (UIManager.Instance.UseAudio && audioSource != null && soundParryFail != null)
+        if (audioSource != null && soundParryFail != null)
         {
             audioSource.PlayOneShot(soundParryFail);
         }
+    }
 
+    // 실패 시 플레이어 반응(밀림 + 붉은 점멸). Player Reaction 토글로 제어한다.
+    public void PlayFailFeedback()
+    {
         StartCoroutine(KnockbackRoutine());
         StartCoroutine(FlashRedRoutine());
     }
